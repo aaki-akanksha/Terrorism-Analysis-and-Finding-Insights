@@ -11,6 +11,14 @@ def main():
     df = pd.read_excel(dataset_name, usecols=seleted_columns)
     df.to_csv('global_terror1.csv', header=True, index = False)
     
+    # changing golbal data to Indian data 
+    
+    dataset_name = 'global_terror1.csv'
+    df = pd.read_csv(dataset_name)
+    filter = df['country_txt'] =='India'
+    df1 = df[filter]
+    df1.to_csv('Indian_terror1.csv',header=True,index=False)
+    
     print("Thanks for using my Project ")
     
     
