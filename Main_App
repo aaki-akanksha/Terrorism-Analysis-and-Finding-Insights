@@ -1,0 +1,45 @@
+import pandas as pd
+import dash
+import webbrowser
+import dash_html_components as html
+
+app = dash.Dash()
+
+def load_data():
+    dataset = 'global_terror.csv'
+    global df
+    df = pd.read_csv(dataset)
+    
+def open_browser():
+    webbrowser.open_new('http://127.0.0.1:8050/')
+
+def create_app():
+    main_layout = html.Div()
+    return main_layout
+
+def main():
+    
+    print("Welcome")
+    
+    # loading data from csv files
+    load_data()
+    
+    # opening url in browser 
+    open_browser()
+    
+    global app 
+
+    # creating web_application layout 
+    app.layout = create_app()
+    
+    # running app
+    app.run_server()
+    
+    print("Thank you")
+    
+    # Best industry practice to keep global variables to none
+    app = None
+    df = None
+
+if __name__ == '__main__' :
+    main()
