@@ -2,20 +2,561 @@ import pandas as pd
 import dash
 import webbrowser
 import dash_html_components as html
+import dash_core_components as dcc
+import plotly.graph_objs as go
+from dash.dependencies import Input,Output,State
+import plotly.express as px
+
 
 app = dash.Dash()
 
 def load_data():
     dataset = 'global_terror.csv'
     global df
+    
+    # read the global terror data
     df = pd.read_csv(dataset)
+    
+    # create months in form of list of dicts as used for dropdown options
+    month = {
+        'January':1,'February':2,'March':3,'April':4,'May':5,'June':6,'July':7,'August':8,'September':9,'October':10,'November':11,'December':12
+    }
+    global month_list
+    month_list = [{'label':key,'value':values} for key,values in month.items()]
+
+    # create dates in form of list of dicts as used for dropdown optionss
+    global date_list
+    date_list = [{'label':x,'value':x} for x in range(1,32)]
+
+    # create regions in form of list of dicts as used for dropdown options
+    region = sorted(df['region_txt'].unique().tolist())
+    global region_list
+    region_list = [{'label':str(i),'value':str(i)} for i in region]
+
+    # create country name in form of list of dicts as used for dropdown options
+    country = sorted(df['country_txt'].unique().tolist())
+    global country_list
+    country_list = [{'label':str(i),'value':str(i)} for i in country]
+
+    # create state name in form of list of dicts as used for dropdown options
+    state = sorted(df['provstate'].astype(str).unique().tolist())
+    global state_list
+    state_list = [{'label':str(i),'value':str(i)} for i in state]
+
+    # create city name in form of list of dicts as used for dropdown options
+    city = sorted(df['city'].astype(str).unique().tolist())
+    global city_list
+    city_list = [{'label':str(i),'value':str(i)} for i in city]
+
+    # create attack types in form of list of dicts as used for dropdown options
+    attack = sorted(df['attacktype1_txt'].unique().tolist())
+    global attack_list
+    attack_list = [{'label':str(i),'value':str(i)} for i in attack]
+    
+    # create list of years for slider 
+    global year_list
+    year_list = sorted(df['iyear'].unique().tolist())
+    global year_dict
+    year_dict = {str(i):str(i) for i in year_list}
+
+    global types_list
+    types_list = [{'label':'Terrorist Organization','value':'gname'},{'label':'Target Nationality','value':'natlty1_txt'},{'label':'Target Type','value':'targtype1_txt'},{'label':'Type of Attack','value':'attacktype1_txt'},{'label':'Weapon Type','value':'weaptype1_txt'},{'label':'Region','value':'region_txt'},{'label':'Country Attacked','value':'country_txt'}]
+    
     
 def open_browser():
     webbrowser.open_new('http://127.0.0.1:8050/')
 
 def create_app():
-    main_layout = html.Div()
+    main_layout = html.Div(
+    [
+
+            html.H1(id='main_heading',children='Terrorism Analysis and Finding Insights',style={'textAlign': 'center', 'color': '#1B0691','font-size':60 }),
+            
+            dcc.Tabs(id="Tabs", value="tab-1", children=[
+
+               dcc.Tab(label="Map tool" ,id="Map tool",value="tab-1", children=[
+
+                  dcc.Tabs(id = "subtabs", value = "tab-1",children = [
+
+                     dcc.Tab(label="World Map tool", id="World", value="tab-1", children = [html.Div([
+                        
+                        html.Br(),
+
+                        html.Br(),
+
+                        html.Div([dcc.Dropdown(id='month_dropdown',placeholder='Select Month',options = month_list,multi=True,value=[],style={'width':500,'margin-left':'100px','margin-right':'200px'}),
+
+                        dcc.Dropdown(id='date_dropdown',placeholder='Select Date', multi=True, value=[],style={'width':500,'margin-right':'100px','margin-left':'180px'}   )   ],style={'display':'flex'}),
+
+                        html.Br(),
+
+                        html.Div([dcc.Dropdown(id='region_dropdown',placeholder='Select Region name',options=region_list, multi=True,value=[],style={'width':500,'margin-left':'50px','margin-right':'100px'}),
+
+                        dcc.Dropdown(id='country_dropdown',placeholder='Select Country name',multi=True,value=[],style={'width':500,'margin-right':'50px','margin-left':'100px'} ) ],style={'display':'flex'}),
+
+                        html.Br(),
+
+                        html.Div([dcc.Dropdown(id='state_dropdown',placeholder='Select State / Province name',multi=True,value=[],style={'width':500,'margin-left':'50px','margin-right':'100px'}),
+            
+                        dcc.Dropdown(id='city_dropdown',placeholder='Select City name',multi=True,value=[],style={'width':500,'margin-right':'50px','margin-left':'100px'}) ],style={'display':'flex'}),
+
+                        html.Br(), 
+
+                        html.Div([dcc.Dropdown(id='attack_dropdown',placeholder='Select Attack Type',multi=True,options=attack_list,value=[],style={'width':600})], style = {'width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}),
+                         
+                        html.Br(),
+
+                        html.H4('Select Year',style={'textAlign':'center','color':'blue'}),
+
+                        dcc.RangeSlider(id='year_slider',min=min(year_list), max=max(year_list), value=[min(year_list),max(year_list)], marks = year_dict),
+            
+                        html.Br(), 
+
+                        dcc.Graph(id='graph')]
+
+                     )]),
+
+                  dcc.Tab(label="India Map tool", id="India", value="tab-2", children =[html.Div(
+                     [
+                        html.Br(),
+
+                        html.Br(),
+
+                        html.Div([dcc.Dropdown(id='month_dropdown1',placeholder='Select Month',options = month_list,multi=True,value=[],style={'width':500,'margin-left':'100px','margin-right':'200px'}),
+
+                        dcc.Dropdown(id='date_dropdown1',placeholder='Select Date', multi=True, value=[],style={'width':500,'margin-left':'180px','margin-right':'200px'})],style={'display':'flex'}),
+
+                        html.Br(),
+
+                        html.Div([dcc.Dropdown(id='region_dropdown1',placeholder='Select Region name',options=region_list, multi=True,value=['South Asia'],disabled=True,style={'width':500,'margin-left':'50px','margin-right':'100px'}),
+
+                        dcc.Dropdown(id='country_dropdown1',placeholder='Select Country name',options = country_list ,multi=True,value=['India'],disabled=True,style={'width':500,'margin-left':'100px','margin-right':'50px'})],style={'display':'flex'}),
+
+                        html.Br(),
+
+                        html.Div([dcc.Dropdown(id='state_dropdown1',placeholder='Select State / Province name',multi=True,value=[],style={'width':500,'margin-left':'50px','margin-right':'100px'}),
+            
+                        dcc.Dropdown(id='city_dropdown1',placeholder='Select City name',multi=True,value=[],style={'width':500,'margin-left':'100px','margin-right':'50px'})],style={'display':'flex'}),
+
+                        html.Br(),
+                        
+                        html.Div([dcc.Dropdown(id='attack_dropdown1',placeholder='Select Attack Type',multi=True,options=attack_list,value=[],style={'width':600})], style = {'width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}),
+                         
+                        html.H5('Select Year'),
+
+                        dcc.RangeSlider(id='year_slider1',min=min(year_list), max=max(year_list), value=[min(year_list),max(year_list)], marks = year_dict),
+            
+                        html.Br(),
+
+                        dcc.Graph(id='graph1')
+                     ]
+                  )])
+
+               ])
+               
+            ]),
+      
+               dcc.Tab(label = "Chart Tool", id="chart tool", value="tab-3", children=[
+
+                  dcc.Tabs(id = "subtabs2", value = "tab-3",children = [
+
+                     dcc.Tab(label="World Chart tool", id="WorldC", value="tab-3",children=[html.Div(
+                        [
+                           html.Br(),
+                           html.Br(),
+                           html.Div([ dcc.Dropdown(id='types_dropdown',options=types_list,placeholder='Select Type ( For Eg:Region  -selected )',style={'width':600})], style = {'width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}),
+                           html.Br(),
+                           html.Div([ dcc.Input(id = 'input_txt',placeholder='Select Filter',type='text',style={'height':30,'width':300})], style = {'width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}),
+                           html.Br(),
+                           dcc.Graph(id='graph3')
+                        ])
+                     ]),
+
+                     dcc.Tab(label="India Chart tool", id="IndiaC", value="tab-4",children=[html.Div(
+                        [
+                           html.Br(),
+                           html.Br(),
+                           html.Div([ dcc.Dropdown(id='types_dropdown1',options=types_list,placeholder='Select Type ( For Eg:Region  -selected )',style={'width':600})], style = {'width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}),
+                           html.Br(),
+                           html.Div([dcc.Input(id = 'input_txt1',placeholder='Select Filter',type='text',style={'height':30,'width':300})], style = {'width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}),
+                           html.Br(),
+                           dcc.Graph(id='graph4')  
+                        ]
+                     )])
+                     ]),
+
+               ])
+            
+            ],style={'margin':0})
+
+      ],style={'margin':'0px 0px 0px 0px','padding':'0px 0px 0px 0px'}
+    )
     return main_layout
+    
+
+
+
+# Callbacks for World Map Graph
+@app.callback(
+    Output('graph','figure'),
+    [
+       Input('country_dropdown','value'),
+       Input('year_slider','value') ,
+       Input('month_dropdown','value') ,
+       Input('date_dropdown','value'),
+       Input('region_dropdown','value'),
+       Input('state_dropdown','value'),
+       Input('city_dropdown','value'),
+       Input('attack_dropdown','value')
+    ]
+)
+def graph_update(country_value,year_value,month_value,date_value,region_value,state_value,city_value,attack_value):
+    print('Region selected is',region_value)
+    print('Country selected is',country_value)
+    print('State selected is',state_value)
+    print('City selected is',city_value)
+    print('Year selected is',year_value)
+    print('Month selected is',month_value)
+    print('Date selected is',date_value)
+    print('Attacktype Selected is',attack_value)
+
+    years = [x for x in range(year_value[0],year_value[1]+1)]
+    df5 = df[df['iyear'].isin(years)]
+    df2 = df5[df5['region_txt'].isin(region_value)]
+    df3 = df2[df2['country_txt'].isin(country_value)]
+    df4 = df3[df3['provstate'].isin(state_value)]
+    df1 = df4[df4['city'].isin(city_value)]
+
+    fig = go.Figure()
+    
+    if region_value==[] :
+        if attack_value==[]:
+            if month_value==[]:
+               fig = px.scatter_mapbox(df5, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            elif date_value==[]:
+               fig = px.scatter_mapbox(df5[df5['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            else:
+               df6 = df5[df5['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+        else:
+            df7 = df5[df5['attacktype1_txt'].isin(attack_value)]
+            if month_value==[]:
+               fig = px.scatter_mapbox(df7, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            elif date_value==[]:
+               fig = px.scatter_mapbox(df7[df7['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            else:
+               df6 = df7[df7['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+    
+    elif country_value==[]:
+        if attack_value==[]:  
+            if month_value==[]:
+               fig = px.scatter_mapbox(df2, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700) 
+            elif  date_value==[]:
+               fig = px.scatter_mapbox(df2[df2['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700) 
+            else:
+               df6 = df2[df2['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+        else:
+            df7 = df2[df2['attacktype1_txt'].isin(attack_value)]
+            if month_value==[]:
+               fig = px.scatter_mapbox(df7, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            elif date_value==[]:
+               fig = px.scatter_mapbox(df7[df7['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            else:
+               df6 = df7[df7['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+
+    elif state_value==[]:
+        if attack_value==[]:
+           if month_value==[]:
+              fig = px.scatter_mapbox(df3, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700) 
+           elif  date_value==[]:
+              fig = px.scatter_mapbox(df3[df3['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700) 
+           else:
+              df6 = df3[df3['imonth'].isin(month_value)]
+              fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)   
+        else:
+            df7 = df3[df3['attacktype1_txt'].isin(attack_value)]
+            if month_value==[]:
+               fig = px.scatter_mapbox(df7, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            elif date_value==[]:
+               fig = px.scatter_mapbox(df7[df7['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            else:
+               df6 = df7[df7['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+
+    elif city_value==[]:
+        if attack_value==[]:
+            if month_value==[]:
+               fig = px.scatter_mapbox(df4, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700) 
+            elif  date_value==[]:
+               fig = px.scatter_mapbox(df4[df4['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700) 
+            else:
+               df6 = df4[df4['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)   
+        else:
+            df7 = df4[df4['attacktype1_txt'].isin(attack_value)]
+            if month_value==[]:
+               fig = px.scatter_mapbox(df7, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            elif date_value==[]:
+               fig = px.scatter_mapbox(df7[df7['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            else:
+               df6 = df7[df7['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+
+    else:
+        if attack_value==[]:
+            if month_value==[]:
+               fig = px.scatter_mapbox(df1, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700) 
+            elif  date_value==[]:
+               fig = px.scatter_mapbox(df1[df1['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700) 
+            else:
+               df6 = df1[df1['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)   
+        else:
+            df7 = df1[df1['attacktype1_txt'].isin(attack_value)]
+            if month_value==[]:
+               fig = px.scatter_mapbox(df7, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            elif date_value==[]:
+               fig = px.scatter_mapbox(df7[df7['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+            else:
+               df6 = df7[df7['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=1.5, height=700)
+
+    fig.update_layout(mapbox_style="open-street-map")
+    fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    fig.update_layout(plot_bgcolor='#000000',paper_bgcolor='#666666',font_color='#7FDBFF')
+    
+    return fig
+
+# Callback for month and date 
+@app.callback(
+    Output('date_dropdown','options'),
+    [Input('month_dropdown','value')]
+)
+def date_update(month_value):
+    print('month selected',month_value )
+    if any(i in month_value for i in [1,3,5,7,8,10,12]):
+        return date_list
+    elif any(i in month_value for i in [4,6,9,11]):
+        return [x for x in date_list[:-1]]
+    elif 2 in month_value:
+        return [x for x in date_list[:-2]]
+    else:
+        return []
+
+# Callback for country from region
+@app.callback(
+    Output('country_dropdown','options'),
+    [Input('region_dropdown','value')]
+)
+def country_update(region_value):
+    if region_value==[]:
+       return []
+    return [{'label':str(x),'value':str(x)}for x in (df[df['region_txt'].isin(region_value)])['country_txt'].unique().tolist()]
+
+# Callback for state from country
+@app.callback(
+    Output('state_dropdown','options'),
+    [Input('country_dropdown','value')]
+)
+def state_update(country_value):
+    if country_value==[]:
+       return []
+    return [{'label':str(x),'value':str(x)}for x in df[df['country_txt'].isin(country_value)]['provstate'].unique().tolist()]    
+
+# Callback for city from state
+@app.callback(
+    Output('city_dropdown','options'),
+    [Input('state_dropdown','value')]
+)
+def city_update(state_value):
+    if state_value==[]:
+       return []
+    return [{'label':str(x),'value':str(x)}for x in df[df['provstate'].isin(state_value)]['city'].unique().tolist()]
+
+
+
+
+# Callbacks for Indian Map Graph
+@app.callback(
+    Output('graph1','figure'),
+    [
+       Input('year_slider1','value') ,
+       Input('month_dropdown1','value') ,
+       Input('date_dropdown1','value'),
+       Input('state_dropdown1','value'),
+       Input('city_dropdown1','value'),
+       Input('attack_dropdown1','value')
+    ]
+)
+def graph_update1(year_value,month_value,date_value,state_value,city_value,attack_value):
+   years = [x for x in range(year_value[0],year_value[1]+1)]
+   df1 = df[(df['country_txt']=='India') & df['iyear'].isin(years) ]
+   df4 = df1[df1['provstate'].isin(state_value)]
+   df5 = df4[df4['city'].isin(city_value)]
+     
+   fig = go.Figure()
+   
+   if state_value==[]:
+        if attack_value==[]:
+           if month_value==[]:
+              fig = px.scatter_mapbox(df1, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700) 
+           elif  date_value==[]:
+              fig = px.scatter_mapbox(df1[df1['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700) 
+           else:
+              df6 = df1[df1['imonth'].isin(month_value)]
+              fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)   
+        else:
+            df7 = df1[df1['attacktype1_txt'].isin(attack_value)]
+            if month_value==[]:
+               fig = px.scatter_mapbox(df7, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)
+            elif date_value==[]:
+               fig = px.scatter_mapbox(df7[df7['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)
+            else:
+               df6 = df7[df7['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)
+
+   elif city_value==[]:
+        if attack_value==[]:
+            if month_value==[]:
+               fig = px.scatter_mapbox(df4, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700) 
+            elif  date_value==[]:
+               fig = px.scatter_mapbox(df4[df4['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700) 
+            else:
+               df6 = df4[df4['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)   
+        else:
+            df7 = df4[df4['attacktype1_txt'].isin(attack_value)]
+            if month_value==[]:
+               fig = px.scatter_mapbox(df7, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)
+            elif date_value==[]:
+               fig = px.scatter_mapbox(df7[df7['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)
+            else:
+               df6 = df7[df7['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)
+
+   else:
+        if attack_value==[]:
+            if month_value==[]:
+               fig = px.scatter_mapbox(df5, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700) 
+            elif  date_value==[]:
+               fig = px.scatter_mapbox(df5[df5['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700) 
+            else:
+               df6 = df5[df5['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)   
+        else:
+            df7 = df5[df5['attacktype1_txt'].isin(attack_value)]
+            if month_value==[]:
+               fig = px.scatter_mapbox(df7, lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)
+            elif date_value==[]:
+               fig = px.scatter_mapbox(df7[df7['imonth'].isin(month_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)
+            else:
+               df6 = df7[df7['imonth'].isin(month_value)]
+               fig = px.scatter_mapbox(df6[df6['iday'].isin(date_value)], lat="latitude", lon="longitude", hover_name="city", hover_data=["region_txt","country_txt","provstate", "nkill","attacktype1_txt","iyear",'imonth','iday'], color='attacktype1_txt', zoom=3.8, height=700)
+
+
+   fig.update_layout(mapbox_style="open-street-map")
+   fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+   fig.update_layout(plot_bgcolor='#000000',paper_bgcolor='#666666',font_color='#7FDBFF')
+
+   return fig 
+
+# Callback for month and date 
+@app.callback(
+    Output('date_dropdown1','options'),
+    [Input('month_dropdown1','value')]
+)
+def date_update1(month_value):
+    print('month selected',month_value )
+    if any(i in month_value for i in [1,3,5,7,8,10,12]):
+        return date_list
+    elif any(i in month_value for i in [4,6,9,11]):
+        return [x for x in date_list[:-1]]
+    elif 2 in month_value:
+        return [x for x in date_list[:-2]]
+    else:
+        return []
+
+# Callback for state from country
+@app.callback(
+    Output('state_dropdown1','options'),
+    [Input('country_dropdown1','value')]
+)
+def state_update1(country_value):
+    if country_value==[]:
+       return []
+    return [{'label':str(x),'value':str(x)}for x in df[df['country_txt'].isin(country_value)]['provstate'].unique().tolist()]    
+
+# Callback for city from state
+@app.callback(
+   Output('city_dropdown1','options'),
+   [Input('state_dropdown1','value')]
+)
+def city_update1(state_value):
+    if state_value==[]:
+       return []
+    return [{'label':str(x),'value':str(x)}for x in df[df['provstate'].isin(state_value)]['city'].unique().tolist()]
+
+
+
+
+# Callbacks for World Chart Tool
+@app.callback(
+   Output('graph3','figure'),
+   [
+      Input('types_dropdown','value'),
+      Input('input_txt','value')
+   ]
+)
+def chart_update(type_value,filter_value):
+   fig = go.Figure()
+
+   if type_value!=None:
+      if filter_value!=None:
+         df1 = df.groupby('iyear')[type_value].value_counts().reset_index(name='count')
+         df1 = df1[df1[type_value].str.contains(filter_value,case=False)]
+         fig = px.area(df1, x= "iyear", y ="count", color = type_value)
+      else:
+         df1 = df.groupby('iyear')[type_value].value_counts().reset_index(name='count')
+         fig = px.area(df1, x= "iyear", y ="count", color = type_value)
+   else:
+      df1 = df.groupby('iyear')['region_txt'].value_counts().reset_index(name='count')
+      fig = px.area(df1, x= "iyear", y ="count", color = 'region_txt')
+   fig.update_layout(plot_bgcolor='#000000', paper_bgcolor='#666666',font_color='#7FDBFF')
+   return fig
+
+
+
+
+# Callbacks for India Chart Tool
+@app.callback(
+   Output('graph4','figure'),
+   [
+      Input('types_dropdown1','value'),
+      Input('input_txt1','value')
+   ]
+)
+def chart_update1(type_value,filter_value):
+   fig = go.Figure()
+   df2 = df[df['country_txt']=='India']
+   if type_value!=None:
+      if filter_value!=None:
+         df1 = df2.groupby('iyear')[type_value].value_counts().reset_index(name='count')
+         df1 = df1[df1[type_value].str.contains(filter_value,case=False)]
+         fig = px.area(df1, x= "iyear", y ="count", color = type_value)
+      else:
+         df1 = df2.groupby('iyear')[type_value].value_counts().reset_index(name='count')
+         fig = px.area(df1, x= "iyear", y ="count", color = type_value)
+   else:
+      df1 = df2.groupby('iyear')['region_txt'].value_counts().reset_index(name='count')
+      fig = px.area(df1, x= "iyear", y ="count", color = 'region_txt')
+   fig.update_layout(plot_bgcolor='#000000', paper_bgcolor='#666666',font_color='#7FDBFF')
+   return fig
+
+
+
 
 def main():
     
@@ -31,6 +572,9 @@ def main():
 
     # creating web_application layout 
     app.layout = create_app()
+    
+    # App title to show at above of webpage 
+    app.title = 'Terrorism Analysis and Insights'
     
     # running app
     app.run_server()
