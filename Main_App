@@ -84,9 +84,9 @@ def create_app():
 
                         html.Br(),
 
-                        html.Div([dcc.Dropdown(id='month_dropdown',placeholder='Select Month',options = month_list,multi=True,value=[],style={'width':500,'margin-left':'100px','margin-right':'200px'}),
+                        html.Div([dcc.Dropdown(id='month_dropdown',placeholder='Select Month',options = month_list,multi=True,value=[],style={'width':500,'margin-left':'50px','margin-right':'100px'}),
 
-                        dcc.Dropdown(id='date_dropdown',placeholder='Select Date', multi=True, value=[],style={'width':500,'margin-right':'100px','margin-left':'180px'}   )   ],style={'display':'flex'}),
+                        dcc.Dropdown(id='date_dropdown',placeholder='Select Date', multi=True, value=[],style={'width':500,'margin-right':'50px','margin-left':'100px'}   )   ],style={'display':'flex'}),
 
                         html.Br(),
 
@@ -122,9 +122,9 @@ def create_app():
 
                         html.Br(),
 
-                        html.Div([dcc.Dropdown(id='month_dropdown1',placeholder='Select Month',options = month_list,multi=True,value=[],style={'width':500,'margin-left':'100px','margin-right':'200px'}),
+                        html.Div([dcc.Dropdown(id='month_dropdown1',placeholder='Select Month',options = month_list,multi=True,value=[],style={'width':500,'margin-left':'50px','margin-right':'100px'}),
 
-                        dcc.Dropdown(id='date_dropdown1',placeholder='Select Date', multi=True, value=[],style={'width':500,'margin-left':'180px','margin-right':'200px'})],style={'display':'flex'}),
+                        dcc.Dropdown(id='date_dropdown1',placeholder='Select Date', multi=True, value=[],style={'width':500,'margin-left':'100px','margin-right':'50px'})],style={'display':'flex'}),
 
                         html.Br(),
 
